@@ -1,31 +1,44 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-
 import 'package:phone_field_intel/src/tools/countries.dart';
 import 'package:phone_field_intel/src/tools/helpers.dart';
 
-class PickerDialogStyle {
+/// Style configuration for the country picker dialog
+class CountryPickerStyle {
+  /// Background color of the dialog
   final Color? backgroundColor;
 
+  /// Text style for country dial codes
   final TextStyle? countryCodeStyle;
 
+  /// Text style for country names
   final TextStyle? countryNameStyle;
 
+  /// Custom divider widget between list items
   final Widget? listTileDivider;
 
+  /// Padding for each list tile
   final EdgeInsets? listTilePadding;
 
+  /// Overall padding for the dialog
   final EdgeInsets? padding;
 
+  /// Cursor color for the search field
   final Color? searchFieldCursorColor;
 
+  /// Input decoration for the search field
   final InputDecoration? searchFieldInputDecoration;
 
+  /// Padding around the search field
   final EdgeInsets? searchFieldPadding;
 
+  /// Text style for the search field
+  final TextStyle? searchFieldTextStyle;
+
+  /// Width of the dialog
   final double? width;
 
-  PickerDialogStyle({
+  const CountryPickerStyle({
     this.backgroundColor,
     this.countryCodeStyle,
     this.countryNameStyle,
@@ -35,6 +48,7 @@ class PickerDialogStyle {
     this.searchFieldCursorColor,
     this.searchFieldInputDecoration,
     this.searchFieldPadding,
+    this.searchFieldTextStyle,
     this.width,
   });
 }
@@ -45,11 +59,11 @@ class CountryPickerDialog extends StatefulWidget {
   final ValueChanged<Country> onCountryChanged;
   final String searchText;
   final List<Country> filteredCountries;
-  final PickerDialogStyle? style;
+  final CountryPickerStyle? style;
   final String languageCode;
 
   const CountryPickerDialog({
-    Key? key,
+    super.key,
     required this.searchText,
     required this.languageCode,
     required this.countryList,
@@ -57,7 +71,7 @@ class CountryPickerDialog extends StatefulWidget {
     required this.selectedCountry,
     required this.filteredCountries,
     this.style,
-  }) : super(key: key);
+  });
 
   @override
   _CountryPickerDialogState createState() => _CountryPickerDialogState();
@@ -72,7 +86,9 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
     _selectedCountry = widget.selectedCountry;
     _filteredCountries = widget.filteredCountries.toList()
       ..sort(
-        (a, b) => a.localizedName(widget.languageCode).compareTo(b.localizedName(widget.languageCode)),
+        (a, b) => a
+            .localizedName(widget.languageCode)
+            .compareTo(b.localizedName(widget.languageCode)),
       );
 
     super.initState();
@@ -86,20 +102,24 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
     const defaultVerticalPadding = 24.0;
     return Dialog(
       insetPadding: EdgeInsets.symmetric(
-          vertical: defaultVerticalPadding,
-          horizontal: mediaWidth > (width + defaultHorizontalPadding * 2)
-              ? (mediaWidth - width) / 2
-              : defaultHorizontalPadding),
+        vertical: defaultVerticalPadding,
+        horizontal: mediaWidth > (width + defaultHorizontalPadding * 2)
+            ? (mediaWidth - width) / 2
+            : defaultHorizontalPadding,
+      ),
       backgroundColor: widget.style?.backgroundColor,
       child: Container(
         padding: widget.style?.padding ?? const EdgeInsets.all(10),
         child: Column(
           children: <Widget>[
             Padding(
-              padding: widget.style?.searchFieldPadding ?? const EdgeInsets.all(0),
+              padding:
+                  widget.style?.searchFieldPadding ?? const EdgeInsets.all(0),
               child: TextField(
                 cursorColor: widget.style?.searchFieldCursorColor,
-                decoration: widget.style?.searchFieldInputDecoration ??
+                style: widget.style?.searchFieldTextStyle,
+                decoration:
+                    widget.style?.searchFieldInputDecoration ??
                     InputDecoration(
                       suffixIcon: const Icon(Icons.search),
                       labelText: widget.searchText,
@@ -107,7 +127,9 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                 onChanged: (value) {
                   _filteredCountries = widget.countryList.stringSearch(value)
                     ..sort(
-                      (a, b) => a?.localizedName(widget.languageCode).compareTo(b?.localizedName(widget.languageCode)),
+                      (a, b) => a
+                          .localizedName(widget.languageCode)
+                          .compareTo(b.localizedName(widget.languageCode)),
                     );
                   if (mounted) setState(() {});
                 },
@@ -121,24 +143,21 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                 itemBuilder: (ctx, index) => Column(
                   children: <Widget>[
                     ListTile(
-                      leading: kIsWeb
-                          ? Image.asset(
-                              'assets/flags/${_filteredCountries[index].code.toLowerCase()}.png',
-                              package: 'intl_phone_field',
-                              width: 32,
-                            )
-                          : Text(
-                              _filteredCountries[index].flag,
-                              style: const TextStyle(fontSize: 18),
-                            ),
+                      leading: _buildCountryFlag(_filteredCountries[index]),
                       contentPadding: widget.style?.listTilePadding,
                       title: Text(
-                        _filteredCountries[index].localizedName(widget.languageCode),
-                        style: widget.style?.countryNameStyle ?? const TextStyle(fontWeight: FontWeight.w700),
+                        _filteredCountries[index].localizedName(
+                          widget.languageCode,
+                        ),
+                        style:
+                            widget.style?.countryNameStyle ??
+                            const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       trailing: Text(
                         '+${_filteredCountries[index].dialCode}',
-                        style: widget.style?.countryCodeStyle ?? const TextStyle(fontWeight: FontWeight.w700),
+                        style:
+                            widget.style?.countryCodeStyle ??
+                            const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       onTap: () {
                         _selectedCountry = _filteredCountries[index];
@@ -146,7 +165,8 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                         Navigator.of(context).pop();
                       },
                     ),
-                    widget.style?.listTileDivider ?? const Divider(thickness: 1),
+                    widget.style?.listTileDivider ??
+                        const Divider(thickness: 1),
                   ],
                 ),
               ),
@@ -155,5 +175,49 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
         ),
       ),
     );
+  }
+
+  /// Builds the appropriate flag widget based on platform
+  ///
+  /// Uses PNG images for web and Windows platforms for better compatibility,
+  /// and emoji flags for mobile platforms (Android/iOS) where emoji support is better.
+  ///
+  /// [country] The country for which to display the flag
+  Widget _buildCountryFlag(Country country) {
+    // Use PNG images for web and Windows for better flag display
+    if (kIsWeb || Theme.of(context).platform == TargetPlatform.windows) {
+      return Image.asset(
+        'assets/flags/${country.code.toLowerCase()}.png',
+        package: 'phone_field_intel',
+        width: 32,
+        height: 24,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          // Fallback to country code if image fails to load
+          return Container(
+            width: 32,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.grey.shade400),
+            ),
+            child: Center(
+              child: Text(
+                country.code,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      // For mobile platforms (Android/iOS), use emoji flags
+      return Text(country.flag, style: const TextStyle(fontSize: 18));
+    }
   }
 }
