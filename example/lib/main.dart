@@ -194,7 +194,12 @@ class _PhoneFieldDemoState extends State<PhoneFieldDemo> {
                           if (!phone.isValidLength()) {
                             return 'Invalid phone number length';
                           }
-
+                          if (!phone.isValidForSelectedCountry(
+                            _selectedCountry?.code ?? '',
+                            phone.completeNumber,
+                          )) {
+                            return 'Invalid phone number for selected country';
+                          }
                           // Check if number belongs to selected country
                           try {
                             final detectedCountry = PhoneNumber.getCountry(
@@ -245,6 +250,15 @@ class _PhoneFieldDemoState extends State<PhoneFieldDemo> {
                         ),
                         onChanged: (phone) {
                           debugPrint('Phone changed: ${phone.completeNumber}');
+                          if (phone.isValidForSelectedCountry(
+                            _selectedCountry?.code ?? '',
+                            phone.completeNumber,
+                          )) {
+                            setState(() {
+                              _phoneNumber = phone;
+                              _selectedCountryCode = phone.countryISOCode;
+                            });
+                          } else {}
                         },
                       ),
                     ],

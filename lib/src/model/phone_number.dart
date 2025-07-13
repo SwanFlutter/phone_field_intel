@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+import 'package:phone_field_intel/src/model/intel_validate_number.dart';
 import 'package:phone_field_intel/src/tools/countries.dart';
 
 /// Exception thrown when a phone number is too long for the selected country.
@@ -199,29 +201,42 @@ class PhoneNumber {
   ///
   /// Example:
   /// ```dart
-  /// final phone = PhoneNumber(
-  ///   countryISOCode: 'US',
-  ///   countryCode: '+1',
-  ///   number: '9123456789', // Iranian number
-  ///   flag: '🇺🇸',
-  /// );
-  /// print(phone.isValidForSelectedCountry()); // false
+  /// bool isValid = phoneNumber.isValidForSelectedCountry('US', '+11234567890');
+  /// print('Phone number is valid for selected country: $isValid');
   /// ```
-  bool isValidForSelectedCountry() {
+  bool isValidForSelectedCountry(String countryISOCode, String completeNumber) {
     try {
-      // Get the selected country from the country ISO code
-      Country selectedCountry = countries.firstWhere(
-        (country) => country.code == countryISOCode,
-        orElse: () => throw Exception('Country not found'),
-      );
+      // دریافت کشور انتخابی از کد ISO کشور
+      CountryInvalidate selectedCountry = CountryInvalidate.countries
+          .firstWhere(
+            (country) => country.code == countryISOCode,
+            orElse: () => throw Exception('Country not found'),
+          );
 
-      // Check if the complete number starts with the selected country's dial code
-      String cleanNumber = completeNumber.replaceFirst('+', '');
-      String expectedDialCode =
-          selectedCountry.dialCode + selectedCountry.regionCode;
+      // پاک کردن شماره از کاراکترهای غیرضروری
+      String cleanNumber = completeNumber.replaceAll(RegExp(r'[^0-9]'), '');
 
-      return cleanNumber.startsWith(expectedDialCode);
+      // حذف + از ابتدای شماره اگر وجود داشته باشد
+      if (completeNumber.startsWith('+')) {
+        cleanNumber = completeNumber
+            .substring(1)
+            .replaceAll(RegExp(r'[^0-9]'), '');
+      }
+
+      // بررسی اینکه آیا شماره کامل با یکی از پیش‌شماره‌های کشور انتخابی شروع می‌شود
+      bool isValid = selectedCountry.dialCodes.any((dialCode) {
+        return cleanNumber.startsWith(dialCode);
+      });
+
+      // اگر معتبر نیست، لاگ کن تا دیباگ کنید
+      if (!isValid) {
+        debugPrint('Invalid number: $cleanNumber for country: $countryISOCode');
+        debugPrint('Expected dial codes: ${selectedCountry.dialCodes}');
+      }
+
+      return isValid;
     } catch (e) {
+      debugPrint('Error validating phone number: $e');
       return false;
     }
   }

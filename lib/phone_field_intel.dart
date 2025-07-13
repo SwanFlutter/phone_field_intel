@@ -12,14 +12,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:phone_field_intel/src/country_picker_dialog.dart';
 import 'package:phone_field_intel/src/icon_position.dart';
-import 'package:phone_field_intel/src/phone_number.dart';
+import 'package:phone_field_intel/src/model/phone_number.dart';
 import 'package:phone_field_intel/src/tools/countries.dart';
 import 'package:phone_field_intel/src/tools/helpers.dart';
 
 // Export public APIs
 export 'package:phone_field_intel/src/country_picker_dialog.dart';
 export 'package:phone_field_intel/src/icon_position.dart';
-export 'package:phone_field_intel/src/phone_number.dart';
+export 'package:phone_field_intel/src/model/phone_number.dart';
 export 'package:phone_field_intel/src/tools/countries.dart';
 
 /// A customizable international phone number input field widget.
